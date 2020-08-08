@@ -1,0 +1,181 @@
+
+import java.util.Random;
+class ShuffleTree<Value> {
+
+    private class Node {
+        Value value;
+        Node left;
+        Node right;
+        String key;
+
+        //Node essentials
+        Node(String key, Value value) {
+            this.key = key;
+            this.value = value;
+            this.left = null;
+            this.right = null;
+        }
+    }
+    //Declaring Necessary elements from instructions
+    private String[] keys;
+    private Value[] values;
+    private int count;
+    private Random generator;
+    private Node root;
+
+    //Constructor for Tree
+    public ShuffleTree(int size) {
+        if (size < 0) {
+            throw new IllegalArgumentException();
+        } else {                                    //Initialize arrays to size parameter
+            String[] keys = new String[size];
+            Value[] values = (Value[]) new Object[size];
+            count = 0; //No elements added, so count 0
+            root = null;
+            generator = new Random();
+        }
+    }
+
+    public void flush() {    //Durstenfeld-Fisher-Yates Algorithm Implementation to randomize and swap
+        int i = 0;
+        while (i <= count - 2) {
+            int j = Math.abs(generator.nextInt()) % (count - i);
+            String keytemp = keys[i + j];
+            Value vtemp = values[i + j];
+            keys[i + j] = keys[i];
+            values[i + j] = values[i];
+            keys[i] = keytemp;
+            values[i] = vtemp;
+            i++;
+        }
+        for (int z = 0; z < values.length; z++) {    //Add all nodes to BST after randomizing
+            add(keys[z], values[z]);
+            keys[z] = null;
+            values[z] = null;
+        }
+        count=0; //After, emptying the arrays, count back to 0
+    }
+
+    //Helper method to add all nodes to BST
+    public void add(String key, Value value) {
+        if (root == null) {
+            root = new Node(key, value);
+        } else {
+            while (true) {                      //Finds appropriate spot and sets new Node. If already exits, replaces it.
+                int test = key.compareTo(root.key);
+                if (test < 0) {
+                    if (root.left == null) {
+                        root.left = new Node(key, value);
+                        break;
+                    } else {
+                        root = root.left;
+                    }
+                } else if (test > 0) {
+                    if (root.right == null) {
+                        root.right = new Node(key, value);
+                        break;
+                    } else {
+                        root = root.right;
+
+                    }
+                } else {
+                    root.value = value;
+                    break;
+                }
+            }
+        }
+    }
+
+    public void put(String key, Value value) {
+        if (key == null) {  //Null Key input
+            throw new IllegalStateException("Null Entries");
+        }
+        else if (count==values.length) { //Check if arrays full. Getting a NullPointerException.
+            flush();
+        }
+            keys[count] = key;
+            values[count] = value;
+            count++; //Count increment as new value is added
+
+    }
+    public Value get(String key) {
+        if (keys.length != 0 && values.length != 0) {   //Check if arrays aren't empty
+            flush();
+            Node subtree = root;       //Start search at root 
+            while (subtree != null) {
+                int test = key.compareTo(subtree.key);
+                if (test < 0) {
+                    subtree = subtree.left;
+                } else if (test > 0) {
+                    subtree = subtree.right;
+                } else {
+                    return subtree.value;
+                }
+            }
+            throw new IllegalArgumentException("No such key.");  //If not found, throw Exception
+        }
+        else
+            throw new IllegalArgumentException("Empty Tree.");      //If tree is Empty, throw Exception
+    }
+
+
+    public int height() {             
+        if (keys.length != 0 && values.length != 0) {
+            flush();
+            return findheight(root);
+        }
+        else{
+            return 0;
+        }
+    }
+
+    public int findheight(Node root) {  //Helper method to find height.
+        if (root == null) {
+            return 0;
+        } else {
+            int left = findheight(root.left);
+            int right = findheight(root.right);
+            if (left > right) {
+                return left + 1;
+            } else {
+                return right + 1;
+            }
+        }
+
+    } //End findheight
+}  //End Class
+
+class ShuffleBored
+{
+    private final static String[] reserved =
+            { "abstract",     "assert",    "boolean",     "break",
+                    "byte",         "case",      "catch",       "char",
+                    "class",        "const",     "continue",    "default",
+                    "do",           "double",    "else",        "extends",
+                    "final",        "finally",   "float",       "for",
+                    "goto",         "if",        "implements",  "import",
+                    "instanceof",   "int",       "interface",   "long",
+                    "native",       "new",       "package",     "private",
+                    "protected",    "public",    "return",      "short",
+                    "static",       "super",     "switch",      "synchronized",
+                    "this",         "throw",     "throws",      "transient",
+                    "try",          "void",      "volatile",    "while" };
+
+    public static void main(String[] args)
+    {
+        ShuffleTree<Integer> tree = new ShuffleTree<Integer>(60);
+
+        for (int index = 0; index < reserved.length; index += 1)
+        {
+            tree.put(reserved[index], index);
+        }
+
+        System.out.println(tree.height());
+
+        for (int index = 0; index < reserved.length; index += 1)
+        {
+            System.out.format("%02d %s", tree.get(reserved[index]), reserved[index]);
+            System.out.println();
+        }
+    }
+}
